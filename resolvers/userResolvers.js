@@ -16,73 +16,67 @@ const resolvers = {
         return user.name;
       }
 
-      const response = await axios.get(
-        `https://api.paystack.co/bank/resolve?account_number=${accountNumber}&bank_code=${bankCode}`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-          },
-        }
-      );
-      if (!response) {
-        throw new Error(
-          "Please ensure your account number,bank code and paystack secret keys are valid"
+      try {
+        const response = await axios.get(
+          `https://api.paystack.co/bank/resolve?account_number=${accountNumber}&bank_code=${bankCode}`,
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+            },
+          }
         );
-      }
 
-      const paystackName = response.data.data.account_name;
-      if (!paystackName) {
+        const paystackName = response.data.data.account_name;
+
+        return paystackName;
+      } catch (error) {
         throw new Error("Invalid bank code or account number");
       }
-
-      return paystackName;
     },
   },
   Mutation: {
     async verifyUser(_, userParams) {
       const { accountNumber, bankCode, accountName } = userParams;
 
-      const response = await axios.get(
-        `https://api.paystack.co/bank/resolve?account_number=${accountNumber}&bank_code=${bankCode}`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      if (!response) {
-        throw new Error(
-          "Please ensure your account number,bank code and paystack secret key are valid"
+      try {
+        const response = await axios.get(
+          `https://api.paystack.co/bank/resolve?account_number=${accountNumber}&bank_code=${bankCode}`,
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+              "Content-Type": "application/json",
+            },
+          }
         );
-      }
 
-      const paystackName = response.data.data.account_name;
-      if (!paystackName) {
+        const paystackName = response.data.data.account_name;
+
+        const distance = get(
+          accountName.toLowerCase(),
+          paystackName.toLowerCase()
+        );
+
+        const isVerified = distance <= 2;
+        const user = {
+          id: bankCode + accountNumber,
+          name: accountName,
+          isVerified,
+        };
+
+        const users = JSON.parse(fs.readFileSync(jsonFilePath));
+
+        const existingUser = users.find(
+          (u) => u.id === bankCode + accountNumber
+        );
+        if (!existingUser) {
+          users.push(user);
+          fs.writeFileSync(jsonFilePath, JSON.stringify(users));
+        }
+
+        return user;
+      } catch (error) {
         throw new Error("Invalid bank code or account number");
       }
-
-      const distance = get(
-        accountName.toLowerCase(),
-        paystackName.toLowerCase()
-      );
-
-      const isVerified = distance <= 2;
-      const user = {
-        id: bankCode + accountNumber,
-        name: accountName,
-        isVerified,
-      };
-
-      const users = JSON.parse(fs.readFileSync(jsonFilePath));
-
-      const existingUser = users.find((u) => u.id === bankCode + accountNumber);
-      if (!existingUser) {
-        users.push(user);
-        fs.writeFileSync(jsonFilePath, JSON.stringify(users));
-      }
-
-      return user;
     },
   },
 };
