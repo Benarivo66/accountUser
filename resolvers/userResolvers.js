@@ -71,6 +71,14 @@ const resolvers = {
         if (!existingUser) {
           users.push(user);
           fs.writeFileSync(jsonFilePath, JSON.stringify(users));
+        } else if (
+          existingUser &&
+          !existingUser.isVerified &&
+          user.isVerified
+        ) {
+          let ind = users.findIndex((u) => u.id === bankCode + accountNumber);
+          users[ind] = user;
+          fs.writeFileSync(jsonFilePath, JSON.stringify(users));
         }
 
         return user;
