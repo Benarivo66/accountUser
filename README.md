@@ -5,6 +5,6 @@ The pure Levenshtein Distance algorithm might be a more effective solution than 
 - The database was quite simple so I decided to use a json file rather than mongoDB or any of the SQL databases
 - I assume that the user object in the database should be unique to an account and I implemented it accordingly
 - Screenshots of manual test samples are located in the ManualTestSample folder
-- I assume customizing the error report displayed on Postman when we input this a non-existent account number is beyond the scope of this assignment
+- Customizing the error report displayed on Postman when we input a non-existent account number can be improved
 - We start the app by running `npm run start` or `npm run server`
 - We can run unit tests by running `npm run test`
